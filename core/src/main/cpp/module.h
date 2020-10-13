@@ -1,7 +1,6 @@
 #pragma once
 
 #include <jni.h>
-#include <string>
 #include <map>
 #include <vector>
 #include "api.h"
@@ -16,7 +15,7 @@ public:
     uint32_t token;
 
     void *handle{};
-    std::map<std::string, void *> *funcs;
+    std::map<const char *, void *> *funcs;
 
     int supportHide;
     int version;
@@ -34,7 +33,7 @@ private:
 
 public:
     explicit RiruModule(const char *name, uint32_t token = 0) : name(name), token(token ? token : (uintptr_t) name) {
-        funcs = new std::map<std::string, void *>();
+        funcs = new std::map<const char *, void *>();
     }
 
     void info(RiruModuleInfoV9 *info) {

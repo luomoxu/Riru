@@ -1,5 +1,4 @@
 #include <cstring>
-#include <string>
 #include <map>
 #include <vector>
 #include <jni.h>
@@ -16,7 +15,7 @@ struct JNINativeMethodHolder {
             methods(methods), count(count) {}
 };
 
-static auto *native_methods = new std::map<std::string, JNINativeMethodHolder *>();
+static auto *native_methods = new std::map<const char *, JNINativeMethodHolder *>();
 
 void put_native_method(const char *className, const JNINativeMethod *methods, int numMethods) {
     (*native_methods)[className] = new JNINativeMethodHolder(methods, numMethods);
@@ -82,10 +81,12 @@ void *riru_get_native_method_func(
     index -= 1;
 
     // find if it is set by previous modules
+    char buf[4096];
     if (index != 0) {
         for (unsigned long i = index - 1; i >= 0; --i) {
+            snprintf(buf, 4090, "%s%s%s", className, name, signature);
             auto module = get_modules()->at(i);
-            auto it = module->funcs->find(std::string(className) + name + signature);
+            auto it = module->funcs->find(buf);
             if (module->funcs->end() != it)
                 return it->second;
 
@@ -111,5 +112,7 @@ void riru_set_func(uint32_t token, const char *name, void *func) {
 
 void riru_set_native_method_func(
         uint32_t token, const char *className, const char *name, const char *signature, void *func) {
-    riru_set_func(token, (std::string(className) + name + signature).c_str(), func);
+    char buf[4096];
+    snprintf(buf, 4090, "%s%s%s", className, name, signature);
+    riru_set_func(token, buf, func);
 }
